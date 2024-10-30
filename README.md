@@ -7,6 +7,7 @@ You can restore the Nuget dependencies by running the following command in the p
 ```bash
 dotnet restore
 ```
+You will need to copy the contents of ```UAI\thirdParty\openCV``` to the output directory of your app. This is because the OpenCV dlls are not included in the Nuget package.
 
 # Usage
 
