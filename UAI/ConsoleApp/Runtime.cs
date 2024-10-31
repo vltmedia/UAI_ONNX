@@ -63,7 +63,7 @@ namespace UAI.ConsoleApp
             set { args.isServer = value; }
         }
 
-        public bool _hasMainLoop = true;
+        public bool _hasMainLoop = false;
 
         public virtual bool hasMainLoop
         {
