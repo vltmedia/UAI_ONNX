@@ -179,12 +179,12 @@ namespace UAI.ConsoleApp
                 OnUpdate?.Invoke(deltaTime);
 
                 // Check for Escape key to exit
-                if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)
-                {
-                    Console.WriteLine("Escape key pressed. Exiting main loop.");
-                    ExitApp();
-                    break;
-                }
+                //if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)
+                //{
+                //    Console.WriteLine("Escape key pressed. Exiting main loop.");
+                //    ExitApp();
+                //    break;
+                //}
 
                 // Wait asynchronously for the next frame
                 await Task.Delay(delay);
