@@ -15,6 +15,7 @@
     <RepositoryUrl>https://github.com/vltmedia/UAI_ONNX</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>onnx, ai</PackageTags>
+	  <VersionPrefix>1.0.2</VersionPrefix>
     <AssemblyVersion>1.0.2</AssemblyVersion>
     <FileVersion>1.0.2</FileVersion>
   </PropertyGroup>
