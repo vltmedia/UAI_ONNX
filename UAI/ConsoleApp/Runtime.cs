@@ -1,5 +1,4 @@
 ﻿using CommandLine;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
 using System.Threading;
@@ -135,14 +134,14 @@ namespace UAI.ConsoleApp
         public void StartServer()
         {
             Console.WriteLine($"Is server: {isServer}");
-            var host = Host.CreateDefaultBuilder(inputArgs)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<StartupServer>();
-                    webBuilder.UseUrls($"http://0.0.0.0:{port}");
-                    Console.WriteLine($"Starting server at: http://0.0.0.0:{port}");
-                })
-                .Build();
+            //var host = Host.CreateDefaultBuilder(inputArgs)
+            //    .ConfigureWebHostDefaults(webBuilder =>
+            //    {
+            //        webBuilder.UseStartup<StartupServer>();
+            //        webBuilder.UseUrls($"http://0.0.0.0:{port}");
+            //        Console.WriteLine($"Starting server at: http://0.0.0.0:{port}");
+            //    })
+            //    .Build();
         }
 
         public virtual void HandleParseError(IEnumerable<Error> errs)
