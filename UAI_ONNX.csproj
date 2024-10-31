@@ -4,7 +4,27 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>UAI ONNX</Title>
+    <Authors>UAISoftware</Authors>
+    <Description>ONNX Runner built for C# projects that target .Net8.0 or later. This library is built on top of the ONNX Runtime C# API and provides a simple way to load and run ONNX models in C#.
+</Description>
+    <Copyright>2024 UAI Software Inc.</Copyright>
+    <PackageProjectUrl>https://github.com/vltmedia/UAI_ONNX</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/vltmedia/UAI_ONNX</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>onnx, ai</PackageTags>
+    <AssemblyVersion>1.0.1</AssemblyVersion>
+    <FileVersion>1.0.1</FileVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\UAI_ONNX_FaceParse\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
