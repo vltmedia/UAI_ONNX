@@ -633,5 +633,79 @@ namespace UAI.Common.AI
         {
             isSelected = false;
         }
+
+        public static Bitmap CreateCompositeMask(List<Bitmap> masks)
+        {
+            if (masks == null || masks.Count == 0)
+                throw new ArgumentException("Mask list is empty or null.");
+
+            // Use the dimensions of the first mask for the composite
+            int width = masks[0].Width;
+            int height = masks[0].Height;
+
+            // Create a new composite bitmap with the same dimensions
+            Bitmap composite = new Bitmap(width, height);
+
+            // Initialize all pixels to black in the composite
+            using (Graphics g = Graphics.FromImage(composite))
+            {
+                g.Clear(Color.Black);
+            }
+
+            // Combine each mask into the composite
+            foreach (var mask in masks)
+            {
+                if (mask.Width != width || mask.Height != height)
+                    throw new ArgumentException("All masks must have the same dimensions.");
+
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        Color maskPixel = mask.GetPixel(x, y);
+                        Color compositePixel = composite.GetPixel(x, y);
+
+                        // If the current mask pixel is white, set the composite pixel to white
+                        if (maskPixel.R == 255 && maskPixel.G == 255 && maskPixel.B == 255)
+                        {
+                            composite.SetPixel(x, y, Color.White);
+                        }
+                    }
+                }
+            }
+
+            return composite;
+        }
+
+        // Function to subtract white areas in bgMask from the composite bitmap
+        public static Bitmap SubtractMask(Bitmap composite, Bitmap bgMask)
+        {
+            if (composite.Width != bgMask.Width || composite.Height != bgMask.Height)
+                throw new ArgumentException("Composite and bgMask must have the same dimensions.");
+
+            // Create a new bitmap to store the result
+            Bitmap result = new Bitmap(composite.Width, composite.Height);
+
+            for (int y = 0; y < composite.Height; y++)
+            {
+                for (int x = 0; x < composite.Width; x++)
+                {
+                    Color compositePixel = composite.GetPixel(x, y);
+                    Color bgMaskPixel = bgMask.GetPixel(x, y);
+
+                    // If bgMask pixel is white, set result pixel to black, else keep the composite pixel
+                    if (bgMaskPixel.R == 255 && bgMaskPixel.G == 255 && bgMaskPixel.B == 255)
+                    {
+                        result.SetPixel(x, y, Color.Black); // Subtract the white area
+                    }
+                    else
+                    {
+                        result.SetPixel(x, y, compositePixel); // Keep the original composite pixel
+                    }
+                }
+            }
+
+            return result;
+        }
     }
 }
