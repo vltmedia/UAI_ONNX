@@ -15,10 +15,10 @@
     <RepositoryUrl>https://github.com/vltmedia/UAI_ONNX</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>onnx, ai</PackageTags>
-	  <VersionPrefix>1.0.2</VersionPrefix>
-    <AssemblyVersion>1.0.4</AssemblyVersion>
-    <FileVersion>1.0.4</FileVersion>
-    <Version>1.0.4</Version>
+	  <VersionPrefix>1.0.5</VersionPrefix>
+    <AssemblyVersion>1.0.5</AssemblyVersion>
+    <FileVersion>1.0.5</FileVersion>
+    <Version>1.0.5</Version>
   </PropertyGroup>
 
   <ItemGroup>
