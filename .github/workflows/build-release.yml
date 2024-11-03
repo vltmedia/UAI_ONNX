@@ -1,0 +1,102 @@
+name: Build, and Release
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]   # Triggers the workflow on a new release creation
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build Solution in Any CPU Configuration
+        run: dotnet build --configuration Release --property Platform="Any CPU" || dotnet build --configuration Release
+
+      - name: Publish Package
+        run: dotnet pack --configuration Release --property Platform="Any CPU" --output ./artifacts || dotnet pack --configuration Release --output ./artifacts
+
+      - name: List all files in artifacts directory
+        run: ls -R ./artifacts
+
+      - name: Upload .nupkg artifacts to GitHub Actions
+        uses: actions/upload-artifact@v3
+        with:
+          name: nupkg
+          path: './artifacts/*.nupkg' # This should match the output directory specified in dotnet pack
+
+
+    
+      - name: Find and Rename .nupkg to input.nupkg
+        run: |
+          # Find the first .nupkg file in the artifacts directory
+          file=$(find ./artifacts -name "*.nupkg" | head -n 1)
+          if [ -z "$file" ]; then
+            echo "No .nupkg file found in the artifacts directory."
+            exit 1
+          else
+            echo "Found .nupkg file: $file"
+            mv "$file" ./artifacts/input.nupkg
+            echo "Renamed $file to input.nupkg"
+          fi
+        shell: bash
+  
+    
+      - name: Upload .nupkg to Current GitHub Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: './artifacts/input.nupkg' # Path to the renamed .nupkg file
+          asset_name: SharpREST_${{ github.ref_name }}.nupkg
+          asset_content_type: application/zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      
+    
+      - name: Upload UAI_ONNX.dll to Current GitHub Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: './bin/Release/net8.0/UAI_ONNX.dll' # Path to the renamed .nupkg file
+          asset_name: UAI_ONNX.dll
+          asset_content_type: application/octet-stream
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    
+      - name: Upload UAI_ONNX.pdb to Current GitHub Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: './bin/Release/net8.0/UAI_ONNX.pdb' # Path to the renamed .nupkg file
+          asset_name: UAI_ONNX.pdb
+          asset_content_type: application/x-msdownload
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    
+      - name: Upload UAI_ONNX.deps.json to Current GitHub Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: './bin/Release/net8.0/UAI_ONNX.deps.json' # Path to the renamed .nupkg file
+          asset_name: UAI_ONNX.deps.json
+          asset_content_type: application/json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      
+      - name: Push generated package to Nuget registry
+        run: dotnet nuget push ./bin/Release/*.nupkg --api-key ${{ secrets.NUGET_TOKEN }} --source https://api.nuget.org/v3/index.json
