@@ -30,7 +30,7 @@ jobs:
       - name: List all files in artifacts directory
         run: ls -R ./artifacts
 
-      - name: List all files in artifacts directory
+      - name: List all files in base directory
         run: ls -R ./
 
       - name: Upload .nupkg artifacts to GitHub Actions
