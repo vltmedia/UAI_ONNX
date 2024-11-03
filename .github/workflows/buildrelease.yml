@@ -72,6 +72,7 @@ jobs:
           name: UAI_ONNX_deps_json
 
       - name: Download .nupkg artifact
+        id: downloadnupkg
         uses: actions/download-artifact@v3
         with:
           name: nupkg
@@ -114,7 +115,7 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: './artifacts/input.nupkg' # Ensure this matches the downloaded path
+          asset_path: ${{steps.downloadnupkg.outputs.download-path}}' # Ensure this matches the downloaded path
           asset_name: SharpREST_${{ github.ref_name }}.nupkg
           asset_content_type: application/zip
         env:
