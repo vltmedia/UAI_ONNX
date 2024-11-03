@@ -115,11 +115,11 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ${{steps.downloadnupkg.outputs.download-path}}' # Ensure this matches the downloaded path
+          asset_path: ${{steps.downloadnupkg.outputs.download-path}} # Ensure this matches the downloaded path
           asset_name: SharpREST_${{ github.ref_name }}.nupkg
           asset_content_type: application/zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push generated package to Nuget registry
-        run: dotnet nuget push ./artifacts/input.nupkg --api-key ${{ secrets.NUGET_TOKEN }} --source https://api.nuget.org/v3/index.json
+        run: dotnet nuget push ${{steps.downloadnupkg.outputs.download-path}}' --api-key ${{ secrets.NUGET_TOKEN }} --source https://api.nuget.org/v3/index.json
