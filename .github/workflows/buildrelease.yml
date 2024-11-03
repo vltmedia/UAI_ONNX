@@ -1,4 +1,4 @@
-name: Build  and Release
+name: Build - Release
 
 on:
   workflow_dispatch:
@@ -44,7 +44,7 @@ jobs:
       - name: Find and Rename .nupkg to input.nupkg
         run: |
           # Find the first .nupkg file in the artifacts directory
-          file=$(find ./artifacts -name "*.nupkg" | head -n 1)
+          file=$(find ./bin/Release/ -name "*.nupkg" | head -n 1)
           if [ -z "$file" ]; then
             echo "No .nupkg file found in the artifacts directory."
             exit 1
