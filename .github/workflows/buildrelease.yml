@@ -111,15 +111,31 @@ jobs:
       - name: List files in folder
         run: ls -R .
 
-      - name: Upload .nupkg to GitHub Release
+      - name: Find and Rename .nupkg to input.nupkg
+        run: |
+          # Find the first .nupkg file in the artifacts directory
+          file=$(find ./ -name "*.nupkg" | head -n 1)
+          if [ -z "$file" ]; then
+            echo "No .nupkg file found in the ./ directory."
+            exit 1
+          else
+            echo "Found .nupkg file: $file"
+            mv "$file" ./input.nupkg
+            echo "Renamed $file to ./input.nupkg"
+          fi
+        shell: bash
+  
+    
+      - name: Upload .nupkg to Current GitHub Release
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ${{steps.downloadnupkg.outputs.download-path}} # Ensure this matches the downloaded path
-          asset_name: SharpREST_${{ github.ref_name }}.nupkg
+          asset_path: './input.nupkg' # Path to the renamed .nupkg file
+          asset_name: UAI_ONNX_${{ github.ref_name }}.nupkg
           asset_content_type: application/zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+
       - name: Push generated package to Nuget registry
-        run: dotnet nuget push ${{steps.downloadnupkg.outputs.download-path}}' --api-key ${{ secrets.NUGET_TOKEN }} --source https://api.nuget.org/v3/index.json
+        run: dotnet nuget push ./input.nupkg --api-key ${{ secrets.NUGET_TOKEN }} --source https://api.nuget.org/v3/index.json
