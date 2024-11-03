@@ -30,6 +30,9 @@ jobs:
       - name: List all files in artifacts directory
         run: ls -R ./artifacts
 
+      - name: List all files in artifacts directory
+        run: ls -R ./
+
       - name: Upload .nupkg artifacts to GitHub Actions
         uses: actions/upload-artifact@v3
         with:
@@ -53,16 +56,6 @@ jobs:
         shell: bash
   
     
-      - name: Upload .nupkg to Current GitHub Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: './artifacts/input.nupkg' # Path to the renamed .nupkg file
-          asset_name: SharpREST_${{ github.ref_name }}.nupkg
-          asset_content_type: application/zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       
     
       - name: Upload UAI_ONNX.dll to Current GitHub Release
