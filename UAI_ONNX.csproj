@@ -11,21 +11,22 @@
 </Description>
     <Copyright>2024 UAI Software Inc.</Copyright>
     <PackageProjectUrl>https://github.com/vltmedia/UAI_ONNX</PackageProjectUrl>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/vltmedia/UAI_ONNX</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>onnx, ai</PackageTags>
-	  <VersionPrefix>1.0.5</VersionPrefix>
-    <AssemblyVersion>1.0.5</AssemblyVersion>
-    <FileVersion>1.0.5</FileVersion>
-    <Version>1.0.5</Version>
+	  <VersionPrefix>1.0.6</VersionPrefix>
+    <AssemblyVersion>1.0.6</AssemblyVersion>
+    <FileVersion>1.0.6</FileVersion>
+    <Version>1.0.6</Version>
+    
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\UAI_ONNX_FaceParse\README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
+    <!-- Specify the files to include in the package -->
+    <None Include="LICENSE.txt" Pack="true" PackagePath="LICENSE.txt" />
+    <None Include="README.md" Pack="true" PackagePath="README.md" />
   </ItemGroup>
 
   <ItemGroup>
