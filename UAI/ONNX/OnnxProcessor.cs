@@ -636,123 +636,17 @@ namespace UAI.Common.AI
 
         public static Bitmap CreateCompositeMask(List<Bitmap> masks)
         {
-            if (masks == null || masks.Count == 0)
-                throw new ArgumentException("Mask list is empty or null.");
-
-            // Use the dimensions of the first mask for the composite
-            int width = masks[0].Width;
-            int height = masks[0].Height;
-
-            // Create a new composite bitmap with the same dimensions
-            Bitmap composite = new Bitmap(width, height);
-
-            // Initialize all pixels to black in the composite
-            using (Graphics g = Graphics.FromImage(composite))
-            {
-                g.Clear(Color.Black);
-            }
-
-            // Combine each mask into the composite
-            foreach (var mask in masks)
-            {
-                if (mask.Width != width || mask.Height != height)
-                    throw new ArgumentException("All masks must have the same dimensions.");
-
-                for (int y = 0; y < height; y++)
-                {
-                    for (int x = 0; x < width; x++)
-                    {
-                        Color maskPixel = mask.GetPixel(x, y);
-                        Color compositePixel = composite.GetPixel(x, y);
-
-                        // If the current mask pixel is white, set the composite pixel to white
-                        if (maskPixel.R == 255 && maskPixel.G == 255 && maskPixel.B == 255)
-                        {
-                            composite.SetPixel(x, y, Color.White);
-                        }
-                    }
-                }
-            }
-
-            return composite;
+            return ImageProcessor.CreateCompositeMask(masks);
         }
 
-        // Function to subtract white areas in bgMask from the composite bitmap
         public static Bitmap SubtractMask(Bitmap composite, Bitmap bgMask)
         {
-            if (composite.Width != bgMask.Width || composite.Height != bgMask.Height)
-                throw new ArgumentException("Composite and bgMask must have the same dimensions.");
-
-            // Create a new bitmap to store the result
-            Bitmap result = new Bitmap(composite.Width, composite.Height);
-
-            for (int y = 0; y < composite.Height; y++)
-            {
-                for (int x = 0; x < composite.Width; x++)
-                {
-                    Color compositePixel = composite.GetPixel(x, y);
-                    Color bgMaskPixel = bgMask.GetPixel(x, y);
-
-                    // If bgMask pixel is white, set result pixel to black, else keep the composite pixel
-                    if (bgMaskPixel.R == 255 && bgMaskPixel.G == 255 && bgMaskPixel.B == 255)
-                    {
-                        result.SetPixel(x, y, Color.Black); // Subtract the white area
-                    }
-                    else
-                    {
-                        result.SetPixel(x, y, compositePixel); // Keep the original composite pixel
-                    }
-                }
-            }
-
-            return result;
+            return ImageProcessor.SubtractMask(composite, bgMask);
         }
 
         public static Bitmap ApplyChannelAsAlpha(Bitmap bmp1, Bitmap bmp2, int channelIndex = 2)
         {
-            // Ensure both bitmaps have the same dimensions
-            if (bmp1.Width != bmp2.Width || bmp1.Height != bmp2.Height)
-                throw new ArgumentException("Bitmaps must have the same dimensions.");
-
-            // Create a new bitmap with the same dimensions as bmp1
-            Bitmap result = new Bitmap(bmp1.Width, bmp1.Height, PixelFormat.Format32bppArgb);
-
-            // Lock bits for bmp1, bmp2, and the result to access pixel data directly
-            BitmapData bmp1Data = bmp1.LockBits(new Rectangle(0, 0, bmp1.Width, bmp1.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-            BitmapData bmp2Data = bmp2.LockBits(new Rectangle(0, 0, bmp2.Width, bmp2.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-            BitmapData resultData = result.LockBits(new Rectangle(0, 0, result.Width, result.Height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
-
-            unsafe
-            {
-                byte* bmp1Ptr = (byte*)bmp1Data.Scan0;
-                byte* bmp2Ptr = (byte*)bmp2Data.Scan0;
-                byte* resultPtr = (byte*)resultData.Scan0;
-
-                int bytesPerPixel = 4; // For 32bppArgb format
-
-                for (int y = 0; y < bmp1.Height; y++)
-                {
-                    for (int x = 0; x < bmp1.Width; x++)
-                    {
-                        int index = (y * bmp1Data.Stride) + (x * bytesPerPixel);
-
-                        // Copy RGB from bmp1
-                        resultPtr[index + 0] = bmp1Ptr[index + 0]; // Blue
-                        resultPtr[index + 1] = bmp1Ptr[index + 1]; // Green
-                        resultPtr[index + 2] = bmp1Ptr[index + 2]; // Red
-
-                        // Set alpha channel to the red channel of bmp2
-                        resultPtr[index + 3] = bmp2Ptr[index + channelIndex]; // Alpha from Red channel of bmp2
-                    }
-                }
-            }
-
-            // Unlock bits
-            bmp1.UnlockBits(bmp1Data);
-            bmp2.UnlockBits(bmp2Data);
-            result.UnlockBits(resultData);
-
-            return result;
+            return ImageProcessor.ApplyChannelAsAlpha(bmp1, bmp2, channelIndex);
         }
     }
 }
