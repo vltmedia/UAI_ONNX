@@ -707,5 +707,52 @@ namespace UAI.Common.AI
 
             return result;
         }
+
+        public static Bitmap ApplyChannelAsAlpha(Bitmap bmp1, Bitmap bmp2, int channelIndex = 2)
+        {
+            // Ensure both bitmaps have the same dimensions
+            if (bmp1.Width != bmp2.Width || bmp1.Height != bmp2.Height)
+                throw new ArgumentException("Bitmaps must have the same dimensions.");
+
+            // Create a new bitmap with the same dimensions as bmp1
+            Bitmap result = new Bitmap(bmp1.Width, bmp1.Height, PixelFormat.Format32bppArgb);
+
+            // Lock bits for bmp1, bmp2, and the result to access pixel data directly
+            BitmapData bmp1Data = bmp1.LockBits(new Rectangle(0, 0, bmp1.Width, bmp1.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            BitmapData bmp2Data = bmp2.LockBits(new Rectangle(0, 0, bmp2.Width, bmp2.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            BitmapData resultData = result.LockBits(new Rectangle(0, 0, result.Width, result.Height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+
+            unsafe
+            {
+                byte* bmp1Ptr = (byte*)bmp1Data.Scan0;
+                byte* bmp2Ptr = (byte*)bmp2Data.Scan0;
+                byte* resultPtr = (byte*)resultData.Scan0;
+
+                int bytesPerPixel = 4; // For 32bppArgb format
+
+                for (int y = 0; y < bmp1.Height; y++)
+                {
+                    for (int x = 0; x < bmp1.Width; x++)
+                    {
+                        int index = (y * bmp1Data.Stride) + (x * bytesPerPixel);
+
+                        // Copy RGB from bmp1
+                        resultPtr[index + 0] = bmp1Ptr[index + 0]; // Blue
+                        resultPtr[index + 1] = bmp1Ptr[index + 1]; // Green
+                        resultPtr[index + 2] = bmp1Ptr[index + 2]; // Red
+
+                        // Set alpha channel to the red channel of bmp2
+                        resultPtr[index + 3] = bmp2Ptr[index + channelIndex]; // Alpha from Red channel of bmp2
+                    }
+                }
+            }
+
+            // Unlock bits
+            bmp1.UnlockBits(bmp1Data);
+            bmp2.UnlockBits(bmp2Data);
+            result.UnlockBits(resultData);
+
+            return result;
+        }
     }
 }
