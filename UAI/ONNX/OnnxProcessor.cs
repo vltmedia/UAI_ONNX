@@ -76,13 +76,11 @@ namespace UAI.Common.AI
         public OnnxProcessor(string modelPath)
     {
         onnxModelPath = modelPath;
-            if(_session == null)
-            {
-                _session = new InferenceSession(onnxModelPath);
-            }
-    }
+            _session = new InferenceSession(onnxModelPath);
 
-    public List<NamedOnnxValue> CreateOnnxInput(Tensor<float> inputTensor)
+        }
+
+        public List<NamedOnnxValue> CreateOnnxInput(Tensor<float> inputTensor)
     {
         return new List<NamedOnnxValue>
         {
