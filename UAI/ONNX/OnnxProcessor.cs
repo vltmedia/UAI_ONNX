@@ -76,7 +76,10 @@ namespace UAI.Common.AI
         public OnnxProcessor(string modelPath)
     {
         onnxModelPath = modelPath;
-        _session = new InferenceSession(onnxModelPath);
+            if(_session == null)
+            {
+                _session = new InferenceSession(onnxModelPath);
+            }
     }
 
     public List<NamedOnnxValue> CreateOnnxInput(Tensor<float> inputTensor)
@@ -161,7 +164,7 @@ namespace UAI.Common.AI
     {
         if (!File.Exists(filePath))
             throw new FileNotFoundException($"File not found: {filePath}");
-
+        
         return new Bitmap(filePath);
     }
 

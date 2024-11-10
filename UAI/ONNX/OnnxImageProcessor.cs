@@ -30,6 +30,10 @@ namespace UAI.Common.AI
 		public void LoadImage(string imagePath)
 		{
 			// Load to Bitmap
+            if(inputTexture != null)
+            {
+                inputTexture.Dispose();
+            }
 			byte[] imageBytes = File.ReadAllBytes(imagePath);
 			using (MemoryStream ms = new MemoryStream(imageBytes))
             {
