@@ -1,5 +1,8 @@
 ﻿using System.Drawing.Imaging;
 using System.Drawing;
+using Emgu.CV.CvEnum;
+using Emgu.CV.Structure;
+using Emgu.CV;
 
 namespace UAI.Common
 {
@@ -70,6 +73,111 @@ namespace UAI.Common
             blurredImage.UnlockBits(destData);
 
             return blurredImage;
+        }
+
+        public static Bitmap ResizeBitmap(Bitmap original, int newWidth, int newHeight)
+        {
+            Bitmap resizedBitmap = new Bitmap(newWidth, newHeight);
+            using (Graphics graphics = Graphics.FromImage(resizedBitmap))
+            {
+                graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                graphics.DrawImage(original, 0, 0, newWidth, newHeight);
+            }
+            return resizedBitmap;
+        }
+        private static Bitmap ResizeArrayToBitmap(float[,,] array, int newWidth, int newHeight)
+        {
+            int channels = array.GetLength(0);
+            int height = array.GetLength(1);
+            int width = array.GetLength(2);
+
+            Bitmap originalBitmap = new Bitmap(width, height, PixelFormat.Format24bppRgb);
+
+            // Copy array data to bitmap
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int r = (int)(array[0, y, x] * 255);
+                    //int g = (int)(array[1, y, x] * 255);
+                    //int b = (int)(array[2, y, x] * 255);
+                    originalBitmap.SetPixel(x, y, Color.FromArgb(r, r, r));
+                }
+            }
+
+            // Resize using a third-party library or native method
+            Bitmap resizedBitmap = new Bitmap(originalBitmap, new Size(newWidth, newHeight));
+
+            return resizedBitmap;
+        }
+        public static Bitmap InvertBitmap(Bitmap original)
+        {
+            // Create a new Bitmap object to store the inverted image
+            Bitmap invertedImage = new Bitmap(original.Width, original.Height);
+
+            // Loop through each pixel in the image
+            for (int y = 0; y < original.Height; y++)
+            {
+                for (int x = 0; x < original.Width; x++)
+                {
+                    // Get the pixel color at (x, y)
+                    Color originalColor = original.GetPixel(x, y);
+
+                    // Invert the color (255 - each color component)
+                    Color invertedColor = Color.FromArgb(
+                        originalColor.A,                   // Preserve the alpha channel
+                        255 - originalColor.R,             // Invert the red component
+                        255 - originalColor.G,             // Invert the green component
+                        255 - originalColor.B              // Invert the blue component
+                    );
+
+                    // Set the inverted color to the new image
+                    invertedImage.SetPixel(x, y, invertedColor);
+                }
+            }
+
+            return invertedImage;
+        }
+
+
+
+
+        public static Mat SmoothAndThreshold(Mat mask, int kernelSize = 5, double thresholdValue = 128)
+        {
+            Mat smoothedMask = new Mat();
+            Mat binaryMask = new Mat();
+
+            // Apply Gaussian blur
+            CvInvoke.GaussianBlur(mask, smoothedMask, new System.Drawing.Size(kernelSize, kernelSize), 0);
+
+            // Apply threshold
+            CvInvoke.Threshold(smoothedMask, binaryMask, thresholdValue, 255, ThresholdType.Binary);
+
+            return binaryMask;
+        }
+
+
+        public static Mat CleanMask(Mat mask)
+        {
+            Mat cleanedMask = new Mat();
+
+            // Create a structuring element (kernel) for morphological operations
+            Mat kernel = CvInvoke.GetStructuringElement(ElementShape.Rectangle, new System.Drawing.Size(3, 3), new System.Drawing.Point(-1, -1));
+
+            // Apply morphological operations
+            CvInvoke.MorphologyEx(mask, cleanedMask, MorphOp.Open, kernel, new System.Drawing.Point(-1, -1), 1, BorderType.Default, new MCvScalar());
+            CvInvoke.MorphologyEx(cleanedMask, cleanedMask, MorphOp.Close, kernel, new System.Drawing.Point(-1, -1), 1, BorderType.Default, new MCvScalar());
+
+            return cleanedMask;
+        }
+
+
+
+        public static Mat ApplyMedianBlur(Mat mask, int kernelSize = 5)
+        {
+            Mat blurredMask = new Mat();
+            CvInvoke.MedianBlur(mask, blurredMask, kernelSize);
+            return blurredMask;
         }
 
         public static Bitmap SubtractMask(Bitmap composite, Bitmap bgMask)
