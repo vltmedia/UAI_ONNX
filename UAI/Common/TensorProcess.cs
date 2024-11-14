@@ -33,6 +33,17 @@ namespace UAI_ONNX.UAI.Common
 
             return thresholdedTensor;
         }
+
+        public static List<Tensor<float>> NormalizeTensors(List<Tensor<float>> inputTensors, float threshold = 0.3f)
+        {
+            List<Tensor<float>> normalizedTensors = new List<Tensor<float>>();
+    foreach(var r in inputTensors)
+    {
+        normalizedTensors.Add( NormalizeTensor(r, threshold));
+    }
+
+            return normalizedTensors;
+        }
         public static Tensor<float> ApplyGammaCorrection(Tensor<float> inputTensor, float gamma)
         {
             int rows = inputTensor.Dimensions[0];
@@ -100,6 +111,7 @@ namespace UAI_ONNX.UAI.Common
                 for (int j = 0; j < cols; j++)
                 {
                     var val = inputTensor[i, j] / maxValue;
+                    if(threshold > 0.0f){
                     if (val > threshold)
                     {
                         val = 1.0f;
@@ -108,6 +120,7 @@ namespace UAI_ONNX.UAI.Common
                     {
                         val = 0.0f;
                         allWhite = false;
+                    }
                     }
                     //normalizedTensor[i, j] = inputTensor[i, j] / maxValue;
                     // Optional: Clamp the values to ensure they stay within [0, 1]
