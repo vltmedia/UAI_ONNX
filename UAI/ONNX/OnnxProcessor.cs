@@ -53,8 +53,32 @@ namespace UAI.Common.AI
         }
         public Bitmap inputTexture;
         public List<Bitmap> inputFrames = new List<Bitmap>();
+        public List<Bitmap> resultFrames = new List<Bitmap>();
+        public List<Bitmap> bitmaps = new List<Bitmap>();
+        public List<MultiMediaItem> resultMultiMediaItems = new List<MultiMediaItem>();
         public List<Bitmap> frames {get { return inputFrames; } set { inputFrames = value; } }
         public Bitmap frame { get { return inputTexture; } set { inputTexture = value; } }
+        public string targetLabel = "";
+        public int targetIndex = -1;
+
+        public string targetLabelRuntime {get{ 
+            if(labels == null || labels.Length == 0)
+            {
+                return "";
+            }
+            if(targetLabel != "")
+            {
+                targetIndex = System.Array.IndexOf(labels, targetLabel);
+            }
+            else if(targetIndex >= 0 && targetIndex < labels.Length)
+            {
+                targetLabel = labels[targetIndex];
+            }
+            else{
+                targetLabel = labels[0];
+            }
+            return targetLabel;
+        }}
 
         public string[] inputFileExtensions = new string[] { "*.png", "*.jpg" };
         public Vector2I inputImageSize = new Vector2I(1024, 1024);  // The size of the input image to the ONNX model
@@ -68,16 +92,19 @@ namespace UAI.Common.AI
         public string id = "";
 
         public string userModelPath = "";
-
+public List<List<Bitmap>> resultBitmaps = new List<List<Bitmap>>();
         public string userAbsoluteModelPath { get { return ProjectSettings.GlobalizePath(userModelPath); } }
         public string onnxAbsoluteModelPath { get { return ProjectSettings.GlobalizePath(onnxModelPath); } }
         public string modelBaseName { get { return System.IO.Path.GetFileNameWithoutExtension(onnxModelPath); } }
 
         public FramesState framesState = FramesState.Image;
-
+        public string tempInputVideoPath = "";
+        public string tempResultVideoPath = "";
         public int frameIndex = 0;
         public virtual UAIFunctionResultType type { get { return UAIFunctionResultType.IMAGE; } set { type = UAIFunctionResultType.IMAGE; } }
+        public virtual float fps { get { return 8; } set { fps = 8; } }
 
+        public virtual bool saveVideo { get { return true; } set { saveVideo = true; } }
 
         public event EventHandler OnFinished;
         public event EventHandler<int> OnFrameFinished;
@@ -215,12 +242,25 @@ public virtual void LoadImage(string imagePath)
         public virtual async Task RunFramesOnnxInference()
     {
         frameIndex = 0;
+        var runtimeLabel = targetLabelRuntime;
+        resultBitmaps.Clear();
+        resultFrames.Clear();
         while (frameIndex < frames.Count)
         {
             inputTexture = frames[frameIndex];
+            bitmaps.Clear();
+
             await RunFrameOnnxInference();
             await SendInferenceFrameFinished();
+                resultBitmaps.Add(bitmaps);
+                resultFrames.Add(resultTexture);
             frameIndex += 1;
+        }
+        if(framesState == FramesState.Video && saveVideo)
+        {
+        
+            tempResultVideoPath = GetApplicationTempDirectory() + $"/{Guid.NewGuid()}_temp.mp4";
+                ImageProcessor.CombineBitmapsToVideo(resultFrames, tempResultVideoPath,  (int)Math.Round(fps));
         }
         await SendInferenceFinished();
     }
@@ -256,7 +296,22 @@ public virtual void LoadImage(string imagePath)
             }
         }
         }
+public static string GetApplicationTempDirectory()
+    {
+        // Get the system's temp path
+        string tempPath = Path.GetTempPath();
 
+        // Create a subdirectory for the application
+        string appTempPath = Path.Combine(tempPath, "UAI");
+
+        // Ensure the directory exists
+        if (!Directory.Exists(appTempPath))
+        {
+            Directory.CreateDirectory(appTempPath);
+        }
+
+        return appTempPath;
+    }
 
     // public virtual Bitmap LoadImage(string filePath)
     // {
