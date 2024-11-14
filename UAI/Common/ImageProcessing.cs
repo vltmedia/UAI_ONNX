@@ -170,7 +170,80 @@ namespace UAI.Common
 
             return cleanedMask;
         }
+        public static List<Bitmap> LoadVideoAsFrames(string videoPath)
+        {
+            List<Bitmap> bitmaps = new List<Bitmap>();
 
+            // Initialize the VideoCapture object
+            using (VideoCapture capture = new VideoCapture(videoPath))
+            {
+                if (!capture.IsOpened)
+                {
+                    Console.WriteLine("Failed to open video file.");
+                    return bitmaps;
+                }
+
+                Mat frame = new Mat();
+                while (true)
+                {
+                    // Read the next frame
+                    capture.Read(frame);
+
+                    // If the frame is empty, break the loop
+                    if (frame.IsEmpty)
+                        break;
+
+                    // Convert the Mat to Bitmap and add it to the list
+                    Bitmap bitmap = frame.ToBitmap();
+                    bitmaps.Add(bitmap);
+                }
+            }
+
+            return bitmaps;
+        }
+
+        public static bool CombineBitmapsToVideo(List<Bitmap> bitmaps, string outputPath, int framerate)
+        {
+            if (bitmaps == null || bitmaps.Count == 0)
+            {
+                Console.WriteLine("No bitmaps provided to combine.");
+                return false;
+            }
+
+            int width = bitmaps[0].Width;
+            int height = bitmaps[0].Height;
+
+            // Create the VideoWriter object
+            using (VideoWriter writer = new VideoWriter(
+                outputPath,
+                VideoWriter.Fourcc('H', '2', '6', '4'), // H.264 codec
+                framerate,
+                new System.Drawing.Size(width, height),
+                true)) // 'true' for color video
+            {
+                if (!writer.IsOpened)
+                {
+                    Console.WriteLine("Failed to open video writer.");
+                    return false;
+                }
+
+                foreach (var bitmap in bitmaps)
+                {
+                    if (bitmap.Width != width || bitmap.Height != height)
+                    {
+                        Console.WriteLine("Bitmap size mismatch. All bitmaps must have the same dimensions.");
+                        return false;
+                    }
+
+                    using (Mat frame = bitmap.ToMat())
+                    {
+                        writer.Write(frame);
+                    }
+                }
+            }
+            return true;
+
+        }
 
 
         public static Mat ApplyMedianBlur(Mat mask, int kernelSize = 5)
