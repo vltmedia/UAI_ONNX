@@ -14,10 +14,10 @@
     <RepositoryUrl>https://github.com/vltmedia/UAI_ONNX</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>onnx, ai</PackageTags>
-	  <VersionPrefix>1.0.8.8</VersionPrefix>
-    <AssemblyVersion>1.0.8.8</AssemblyVersion>
-    <FileVersion>1.0.8.8</FileVersion>
-    <Version>1.0.8.8</Version>
+	  <VersionPrefix>1.0.8.9</VersionPrefix>
+    <AssemblyVersion>1.0.8.9</AssemblyVersion>
+    <FileVersion>1.0.8.9</FileVersion>
+    <Version>1.0.8.9</Version>
     
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>

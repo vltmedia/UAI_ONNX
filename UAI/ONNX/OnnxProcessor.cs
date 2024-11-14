@@ -77,7 +77,10 @@ namespace UAI.Common.AI
 
         public int frameIndex = 0;
         public virtual UAIFunctionResultType type { get { return UAIFunctionResultType.IMAGE; } set { type = UAIFunctionResultType.IMAGE; } }
+
+
         public event EventHandler OnFinished;
+        public event EventHandler<int> OnFrameFinished;
         public OnnxProcessor(string modelPath)
     {
         onnxModelPath = modelPath;
@@ -216,10 +219,10 @@ public virtual void LoadImage(string imagePath)
         {
             inputTexture = frames[frameIndex];
             await RunFrameOnnxInference();
+            await SendInferenceFrameFinished();
             frameIndex += 1;
         }
-        OnFinished?.Invoke(this, EventArgs.Empty);
-
+        await SendInferenceFinished();
     }
         public virtual async Task RunFrameOnnxInference()
     {
@@ -227,6 +230,33 @@ public virtual void LoadImage(string imagePath)
         // Example of running inference:
         // using var results = _session.Run(inputs);
     }
+       public virtual async Task SendInferenceFrameFinished()
+        {
+
+            OnFrameFinished?.Invoke(this, frameIndex);
+        }
+       public virtual async Task SendInferenceFinished()
+        {
+        if(framesState == FramesState.Image)
+        {
+            OnFinished?.Invoke(this, EventArgs.Empty);
+        }
+        else if(framesState == FramesState.Frames)
+        {
+            if(frameIndex >= frames.Count)
+            {
+                OnFinished?.Invoke(this, EventArgs.Empty);
+            }
+        }
+        else if(framesState == FramesState.Video)
+        {
+            if(frameIndex >= frames.Count)
+            {
+                OnFinished?.Invoke(this, EventArgs.Empty);
+            }
+        }
+        }
+
 
     // public virtual Bitmap LoadImage(string filePath)
     // {

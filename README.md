@@ -44,10 +44,10 @@ public class FaceParsing : OnnxImageProcessor
 	}
 
   
-	public override async Task RunOnnxInference()
+	public override async Task RunFrameOnnxInference()
         {
 
-            await base.RunOnnxInference();
+            await base.RunFrameOnnxInference();
 
             // Setup Ouptuts based on inputImage
             config.onnxMetaData.Inputs[0].dimensions = new List<int>() { 1, 3, inputImageSize.x, inputImageSize.y };
@@ -69,14 +69,14 @@ public class FaceParsing : OnnxImageProcessor
             ProcessSaveMasks(bitmaps, outputPath, FaceParserRuntime.args.saveMasks);
             ProcessJSONOutput(bitmaps, outputPath +"/" + Path.GetFileNameWithoutExtension(FaceParserRuntime.args.inputPath) + "_masks.json", FaceParserRuntime.args.saveJson);
 
-            // Send Inference Finished Signal
-            await SendInferenceFinished();
+            // Send Inference Finished Signal gets sent when all the this.frames are finished.
         }
 
        
-        public virtual async Task SendInferenceFinished()
+        public override async Task SendInferenceFinished()
         {
            Console.WriteLine("Inference Finished");
+           base.SendInferenceFinished();
         }
 
         // Called every frame. 'delta' is the elapsed time since the previous frame.
