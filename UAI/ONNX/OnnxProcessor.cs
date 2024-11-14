@@ -75,9 +75,9 @@ namespace UAI.Common.AI
 
         public FramesState framesState = FramesState.Image;
 
-
+        public int frameIndex = 0;
         public virtual UAIFunctionResultType type { get { return UAIFunctionResultType.IMAGE; } set { type = UAIFunctionResultType.IMAGE; } }
-
+        public event EventHandler OnFinished;
         public OnnxProcessor(string modelPath)
     {
         onnxModelPath = modelPath;
@@ -203,7 +203,25 @@ public virtual void LoadImage(string imagePath)
                 match.dimensions = value;
             }
         }
+
         public virtual async Task RunOnnxInference()
+    {
+        await RunFramesOnnxInference();
+    }
+
+        public virtual async Task RunFramesOnnxInference()
+    {
+        frameIndex = 0;
+        while (frameIndex < frames.Count)
+        {
+            inputTexture = frames[frameIndex];
+            await RunFrameOnnxInference();
+            frameIndex += 1;
+        }
+        OnFinished?.Invoke(this, EventArgs.Empty);
+
+    }
+        public virtual async Task RunFrameOnnxInference()
     {
         Console.WriteLine("Running inference...");
         // Example of running inference:

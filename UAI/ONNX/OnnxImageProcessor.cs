@@ -36,10 +36,10 @@ namespace UAI.Common.AI
             return outputPath;
         }
 
-	public override async Task RunOnnxInference()
+	public override async Task RunFrameOnnxInference()
 	{
             inputImageSize = new Vector2I(inputTexture.Width, inputTexture.Height);
-            await base.RunOnnxInference();
+            await base.RunFrameOnnxInference();
 
 		//Console.WriteLine("Processing image");
 	}
