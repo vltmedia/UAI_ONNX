@@ -27,23 +27,7 @@ namespace UAI.Common.AI
 		
 	}
 	
-		public void LoadImage(string imagePath)
-		{
-			// Load to Bitmap
- 
-			using (MemoryStream ms = new MemoryStream(File.ReadAllBytes(imagePath)))
-            {
-                inputTexture = new Bitmap(ms);
-            }
-            }
-
-        public void DisposeInputImage()
-        {
-            if (inputTexture != null)
-            {
-                inputTexture.Dispose();
-            }
-        }
+		
 
 		public string SaveImage(string outputPath)
         {

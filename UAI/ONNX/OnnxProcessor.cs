@@ -52,6 +52,9 @@ namespace UAI.Common.AI
             }
         }
         public Bitmap inputTexture;
+        public List<Bitmap> inputFrames = new List<Bitmap>();
+        public List<Bitmap> frames {get { return inputFrames; } set { inputFrames = value; } }
+        public Bitmap frame { get { return inputTexture; } set { inputTexture = value; } }
 
         public string[] inputFileExtensions = new string[] { "*.png", "*.jpg" };
         public Vector2I inputImageSize = new Vector2I(1024, 1024);  // The size of the input image to the ONNX model
@@ -69,6 +72,8 @@ namespace UAI.Common.AI
         public string userAbsoluteModelPath { get { return ProjectSettings.GlobalizePath(userModelPath); } }
         public string onnxAbsoluteModelPath { get { return ProjectSettings.GlobalizePath(onnxModelPath); } }
         public string modelBaseName { get { return System.IO.Path.GetFileNameWithoutExtension(onnxModelPath); } }
+
+        public FramesState framesState = FramesState.Image;
 
 
         public virtual UAIFunctionResultType type { get { return UAIFunctionResultType.IMAGE; } set { type = UAIFunctionResultType.IMAGE; } }
@@ -100,7 +105,7 @@ namespace UAI.Common.AI
             oNNXMetaData.Outputs.Add(new ONNXIO() { name = "output", dimensions = new List<int>() { 1, 3, 512, 512 } });
             config.onnxMetaData = oNNXMetaData;
         }
-        public void SetInputName(string name, string value)
+        public virtual void SetInputName(string name, string value)
         {
             if (config == null)
             {
@@ -112,8 +117,55 @@ namespace UAI.Common.AI
                 match.name = value;
             }
         }
+public virtual void LoadImage(string imagePath)
+		{
+			// Load to Bitmap
+ 
+			using (MemoryStream ms = new MemoryStream(File.ReadAllBytes(imagePath)))
+            {
+                inputTexture = new Bitmap(ms);
+                frames = new List<Bitmap>(){inputTexture};
+            }
+            framesState = FramesState.Image;
 
-        public void SetOutputName(string name, string value)
+            }
+
+        public virtual void DisposeInputImage()
+        {
+            DisposeFrames();
+        }
+
+        public virtual void LoadVideoAsFrames(string videoPath)
+        {
+            
+            LoadFrames(ImageProcessor.LoadVideoAsFrames(videoPath));
+            framesState = FramesState.Video;
+        }
+
+        public virtual void LoadFrames(List<Bitmap> frames)
+        {
+
+            this.frames = frames;
+            inputTexture = frames[0];
+            framesState = FramesState.Frames;
+        }
+
+        public virtual void DisposeFrames()
+        {
+            if (frames != null)
+            {
+                foreach (var frame in frames)
+                {
+                    frame.Dispose();
+                }
+                frames.Clear();
+            }
+            if(inputTexture != null)
+            {
+                inputTexture.Dispose();
+            }
+        }
+        public virtual void SetOutputName(string name, string value)
         {
             if (config == null)
             {
@@ -126,7 +178,7 @@ namespace UAI.Common.AI
             }
         }
 
-        public void SetInputDimensions(string name, List<int> value)
+        public virtual void SetInputDimensions(string name, List<int> value)
         {
             if (config == null)
             {
@@ -139,7 +191,7 @@ namespace UAI.Common.AI
             }
         }
 
-        public void SetOutputDimensions(string name, List<int> value)
+        public virtual void SetOutputDimensions(string name, List<int> value)
         {
             if (config == null)
             {
@@ -158,15 +210,15 @@ namespace UAI.Common.AI
         // using var results = _session.Run(inputs);
     }
 
-    public Bitmap LoadImage(string filePath)
-    {
-        if (!File.Exists(filePath))
-            throw new FileNotFoundException($"File not found: {filePath}");
+    // public virtual Bitmap LoadImage(string filePath)
+    // {
+    //     if (!File.Exists(filePath))
+    //         throw new FileNotFoundException($"File not found: {filePath}");
         
-        return new Bitmap(filePath);
-    }
+    //     return new Bitmap(filePath);
+    // }
 
-    public Tensor<float> PreprocessImageToTensor(Bitmap image)
+    public virtual Tensor<float> PreprocessImageToTensor(Bitmap image)
     {
         int width = image.Width;
         int height = image.Height;
@@ -185,7 +237,7 @@ namespace UAI.Common.AI
         return new DenseTensor<float>(data, new[] { 1, 3, height, width });
     }
 
-    public List<Tensor<float>> ExtractChannels(Tensor<float> outputTensor)
+    public virtual List<Tensor<float>> ExtractChannels(Tensor<float> outputTensor)
     {
         List<Tensor<float>> channels = new List<Tensor<float>>();
         int height = outputTensor.Dimensions[2];
@@ -198,7 +250,7 @@ namespace UAI.Common.AI
         return channels;
     }
 
-    private Tensor<float> ExtractTensorOutput(Tensor<float> outputTensor, int batchIndex, int channelIndex, int height, int width)
+    public virtual Tensor<float> ExtractTensorOutput(Tensor<float> outputTensor, int batchIndex, int channelIndex, int height, int width)
     {
         float[] data = new float[height * width];
         for (int y = 0; y < height; y++)
@@ -211,7 +263,7 @@ namespace UAI.Common.AI
         }
         return new DenseTensor<float>(data, new[] { height, width });
     }
-        public Tensor<float> MatToTensor(Mat mat)
+        public virtual Tensor<float> MatToTensor(Mat mat)
         {
             // Ensure the Mat is in RGB format
             if (mat.NumberOfChannels != 3)
@@ -247,7 +299,7 @@ namespace UAI.Common.AI
             // Return a DenseTensor<float> with shape [1, 3, height, width] (batch size 1, 3 channels)
             return new DenseTensor<float>(tensorData, new[] { 1, 3, height, width });
         }
-        public static Bitmap SaveTensorAsGrayscaleBitmap(Tensor<float> tensor)
+        public  static Bitmap SaveTensorAsGrayscaleBitmap(Tensor<float> tensor)
         {
             // Ensure the tensor has the expected shape (height, width)
             if (tensor.Dimensions.Length != 2)
@@ -321,7 +373,7 @@ namespace UAI.Common.AI
                 return bitmap;
             }
         }
-        public Mat TensorRToMat(Tensor<float> tensor, Vector2I imageSize)
+        public virtual Mat TensorRToMat(Tensor<float> tensor, Vector2I imageSize)
         {
             var img2 = SaveTensorAsGrayscaleBitmap(tensor);
 
@@ -368,7 +420,7 @@ namespace UAI.Common.AI
                 Console.WriteLine("Model already exists in " + userAbsoluteModelPath);
             }
         }
-        public Bitmap ResizeBitmap(Bitmap originalBitmap, int newWidth, int newHeight)
+        public virtual Bitmap ResizeBitmap(Bitmap originalBitmap, int newWidth, int newHeight)
         {
             // Create a new empty bitmap with the specified dimensions
             Bitmap resizedBitmap = new Bitmap(newWidth, newHeight);
@@ -388,7 +440,7 @@ namespace UAI.Common.AI
 
             return resizedBitmap;
         }
-        public Mat Texture2DToMat(Bitmap texture, Vector2I targetSize)
+        public virtual  Mat Texture2DToMat(Bitmap texture, Vector2I targetSize)
         {
 
             // Get the image from the texture
@@ -439,12 +491,12 @@ namespace UAI.Common.AI
             System.Runtime.InteropServices.Marshal.Copy(pixelData, 0, dataPointer, pixelData.Length);
             return mat;
         }
-        public List<string> CreateOnnxOutput()
+        public virtual  List<string> CreateOnnxOutput()
         {
             return new List<string> { outputName };
         }
 
-        public List<Tensor<float>> GetResultTensors(IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results)
+        public virtual  List<Tensor<float>> GetResultTensors(IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results)
         {
             using (var result = results.FirstOrDefault())
             {
@@ -459,7 +511,7 @@ namespace UAI.Common.AI
             }
         }
 
-        public Bitmap PostprocessOutputToBitmap(float[] outputData, int width, int height)
+        public virtual  Bitmap PostprocessOutputToBitmap(float[] outputData, int width, int height)
     {
         Bitmap outputImage = new Bitmap(width, height, PixelFormat.Format24bppRgb);
 
@@ -482,7 +534,7 @@ namespace UAI.Common.AI
 
         return outputImage;
     }
-        public Vector4 RandomColor()
+        public virtual  Vector4 RandomColor()
         {
             Random random = new Random();
             float r = (float)random.NextDouble();
@@ -492,7 +544,7 @@ namespace UAI.Common.AI
             return color;
         }
 
-        public Bitmap MatRToTexture2D(Mat mat)
+        public virtual  Bitmap MatRToTexture2D(Mat mat)
         {
             // Get width and height from the Mat
             int width = mat.Width;
@@ -527,7 +579,7 @@ namespace UAI.Common.AI
             }
             return image;
         }
-        public List<Bitmap> ConvertTensorsToBitmaps(Vector2I origImageSize, List<Tensor<float>> rest)
+        public virtual  List<Bitmap> ConvertTensorsToBitmaps(Vector2I origImageSize, List<Tensor<float>> rest)
         {
             List < Bitmap > bitmaps = new List<Bitmap>();
             int index = 0;
@@ -542,7 +594,7 @@ namespace UAI.Common.AI
             }
             return bitmaps;
         }
-        public void ProcessSaveMasks(List<Bitmap> bitmaps, string outputPath, bool saveMasks = true)
+        public virtual  void ProcessSaveMasks(List<Bitmap> bitmaps, string outputPath, bool saveMasks = true)
         {
             if (saveMasks)
             {
@@ -550,7 +602,7 @@ namespace UAI.Common.AI
             }
         }
 
-        public void ProcessJSONOutput(List<Bitmap> bitmaps, string outputPath, bool saveJson = true)
+        public virtual void ProcessJSONOutput(List<Bitmap> bitmaps, string outputPath, bool saveJson = true)
         {
             if (saveJson)
             {
@@ -576,7 +628,7 @@ namespace UAI.Common.AI
             }
         }
 
-        public void SaveImagesToFile(List<Bitmap> bitmaps, string path, ImageFormat imageFormat )
+        public virtual  void SaveImagesToFile(List<Bitmap> bitmaps, string path, ImageFormat imageFormat )
         {
             string ext = imageFormat.ToString().ToLower();
             for (int i = 0; i < bitmaps.Count; i++)
@@ -605,7 +657,7 @@ namespace UAI.Common.AI
                 return Convert.ToBase64String(ms.ToArray());
             }
         }
-        private Bitmap TensorToBitmapMask(Vector2I origImageSize, int index, Tensor<float> tensor)
+        public virtual Bitmap TensorToBitmapMask(Vector2I origImageSize, int index, Tensor<float> tensor)
         {
             var indd = index + 2;
             Vector2I generatedSize = new Vector2I(tensor.Dimensions[1], tensor.Dimensions[0]);
@@ -620,7 +672,7 @@ namespace UAI.Common.AI
             return img;
         }
 
-        public void Dispose()
+        public virtual void Dispose()
     {
         _session?.Dispose();
     }

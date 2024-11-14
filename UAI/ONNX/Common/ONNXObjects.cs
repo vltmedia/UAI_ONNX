@@ -11,3 +11,11 @@ public enum SelectState
         Selected,
         Unselected
     }
+
+[System.Serializable]
+public enum FramesState
+    {
+        Image,
+        Frames,
+        Video
+    }
